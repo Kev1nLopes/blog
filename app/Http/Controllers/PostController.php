@@ -3,12 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePostRequest;
+use App\Http\Requests\UpdatePostRequest;
 use App\Models\Post;
-use App\Models\User;
 use Illuminate\Http\Request;
 
 class PostController extends Controller
-{
+{   
+
+    public function __construct(Post $post)
+    {  
+        $this->post = $post;
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -16,7 +22,7 @@ class PostController extends Controller
      */
     public function index()
     {
-        return Post::all();
+        return $this->post->all();
     }
 
 
@@ -24,7 +30,7 @@ class PostController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  App\Http\Requests\StorePostRequest  $request
      * @return \Illuminate\Http\Response
      */
     public function store(StorePostRequest $request)
@@ -53,7 +59,10 @@ class PostController extends Controller
      */
     public function show($id)
     {
-        $post = Post::find($id);
+        $post = $this->post->findOrFail($id);
+        if(is_null($post))
+            return response()->json(['error'=>'Post not found', 404]);
+            
         $post->user;
         
         return $post;
@@ -67,9 +76,12 @@ class PostController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
-    {
-        //
+    public function update(UpdatePostRequest $request, $id)
+    {   
+        $post = $this->post->find($id);
+        $this->authorize('update', $post);
+
+        return $post;
     }
 
     /**
@@ -80,6 +92,7 @@ class PostController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $post = $this->post->findOrFail($id);
+        
     }
 }
